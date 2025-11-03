@@ -1,8 +1,9 @@
+import os
 from fastapi import FastAPI
 
 app = FastAPI()
 
-DOMAIN = "bookai.asenaytech.com"
+DOMAIN = os.getenv("DOMAIN", "bookai.asenaytech.com")
 
 @app.get("/health")
 async def health():
