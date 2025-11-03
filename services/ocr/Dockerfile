@@ -13,8 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY start.sh ./start.sh
-RUN chmod +x ./start.sh
+COPY start.py ./start.py
+RUN chmod +x ./start.sh ./start.py
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
-CMD ["./start.sh"]
+CMD ["python", "start.py"]
