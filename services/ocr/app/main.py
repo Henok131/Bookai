@@ -10,5 +10,6 @@ async def root():
     return {"service": "ocr", "status": "running", "domain": DOMAIN}
 
 @app.get("/health")
+@app.head("/health")
 async def health():
     return {"ok": True, "service": "ocr", "domain": DOMAIN}
