@@ -8,9 +8,8 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY tsconfig.json vite.config.ts index.html ./
-COPY src ./src
 COPY tailwind.config.ts postcss.config.js ./
-COPY src/index.css ./src/index.css
+COPY src ./src
 
 RUN npm run build
 
