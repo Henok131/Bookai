@@ -12,7 +12,9 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=40s CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "5"]
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
+CMD ["./start.sh"]
