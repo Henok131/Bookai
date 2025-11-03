@@ -2,7 +2,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 COPY tsconfig.json vite.config.ts index.html ./
 COPY src ./src
