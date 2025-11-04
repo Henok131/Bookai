@@ -8,7 +8,11 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY tsconfig.json ./
+COPY prisma ./prisma
 COPY src ./src
+
+# Generate Prisma client and build
+RUN npx prisma generate
 RUN npm run build
 
 EXPOSE 8080

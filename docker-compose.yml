@@ -25,8 +25,11 @@ services:
         condition: service_healthy
     environment:
       PORT: 8080
+      NODE_ENV: ${NODE_ENV:-production}
       DOMAIN: ${DOMAIN:-bookai.asenaytech.com}
       DATABASE_URL: postgresql://${POSTGRES_USER:-bookai}:${POSTGRES_PASSWORD:-bookai_password}@db:5432/${POSTGRES_DB:-bookai}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      OCR_SERVICE_URL: ${OCR_SERVICE_URL:-http://ocr:8000}
     ports:
       - "8080:8080"
     networks:
