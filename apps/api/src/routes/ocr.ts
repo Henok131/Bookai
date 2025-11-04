@@ -25,7 +25,7 @@ const upload = multer({
 // Validation schema
 const ocrExtractSchema = z.object({
   filename: z.string().min(1).max(255),
-  mime: z.enum(ALLOWED_FILE_TYPES as [string, ...string[]]),
+  mime: z.enum([...ALLOWED_FILE_TYPES] as [string, ...string[]]),
   size: z.number().int().positive().max(MAX_FILE_SIZE),
 })
 
@@ -64,7 +64,7 @@ router.post('/extract', upload.single('file'), asyncHandler(async (req, res) => 
       headers: {
         'Content-Type': req.file.mimetype,
       },
-      body: req.file.buffer,
+      body: req.file.buffer as unknown as BodyInit,
     })
 
     if (!ocrResponse.ok) {

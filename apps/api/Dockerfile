@@ -8,12 +8,12 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY tsconfig.json ./
-COPY prisma ./prisma
-COPY src ./src
+COPY prisma/ ./prisma/
+COPY src/ ./src/
 COPY scripts/ ./scripts/
 
 # Generate Prisma client and build
-RUN npx prisma generate
+RUN npx prisma generate --schema=./prisma/schema.prisma
 RUN npm run build
 RUN chmod +x ./scripts/*.sh 2>/dev/null || true
 
