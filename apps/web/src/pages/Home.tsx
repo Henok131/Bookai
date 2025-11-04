@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 const apiBase = import.meta.env.VITE_API_BASE || '/api'
@@ -6,20 +6,49 @@ const apiBase = import.meta.env.VITE_API_BASE || '/api'
 export default function Home() {
   const [apiHealth, setApiHealth] = useState<{ ok?: boolean; error?: string } | null>(null)
   const [ocrHealth, setOcrHealth] = useState<{ ok?: boolean; error?: string } | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
+    // Create AbortController for cleanup
+    abortControllerRef.current = new AbortController()
+    const signal = abortControllerRef.current.signal
+
+    // Helper to safely update state only if component is still mounted
+    const safeSetState = (setter: typeof setApiHealth | typeof setOcrHealth) => {
+      return (value: { ok?: boolean; error?: string } | null) => {
+        if (!signal.aborted) {
+          setter(value)
+        }
+      }
+    }
+
     // Test API health
-    fetch(`${apiBase}/health`)
+    fetch(`${apiBase}/health`, { signal })
       .then(res => res.json())
-      .then(data => setApiHealth(data))
-      .catch(err => setApiHealth({ error: err.message }))
+      .then(data => safeSetState(setApiHealth)(data))
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          safeSetState(setApiHealth)({ error: err.message })
+        }
+      })
 
     // Test OCR health
-    fetch('/ocr/health')
+    fetch('/ocr/health', { signal })
       .then(res => res.json())
-      .then(data => setOcrHealth(data))
-      .catch(err => setOcrHealth({ error: err.message }))
-  }, [apiBase])
+      .then(data => safeSetState(setOcrHealth)(data))
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          safeSetState(setOcrHealth)({ error: err.message })
+        }
+      })
+
+    // Cleanup: abort all pending requests on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, []) // Remove apiBase from deps - it's a constant that never changes
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">

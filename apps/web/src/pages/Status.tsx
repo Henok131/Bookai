@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 const apiBase = import.meta.env.VITE_API_BASE || '/api'
@@ -14,42 +14,89 @@ export default function Status() {
   const [apiStatus, setApiStatus] = useState<ServiceStatus>({})
   const [ocrStatus, setOcrStatus] = useState<ServiceStatus>({})
   const [dbStatus, setDbStatus] = useState<ServiceStatus>({})
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const checkHealth = useCallback(async () => {
+    // Abort any previous pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create new AbortController for this health check
+    abortControllerRef.current = new AbortController()
+    const signal = abortControllerRef.current.signal
     const now = new Date().toLocaleString()
 
+    // Helper to safely update state only if request not aborted
+    const safeSetState = <T extends ServiceStatus>(setter: React.Dispatch<React.SetStateAction<T>>) => {
+      return (value: T) => {
+        if (!signal.aborted) {
+          setter(value)
+        }
+      }
+    }
+
     // Check Web (always running if page loads)
-    setWebStatus({ ok: true, checkedAt: now })
+    safeSetState(setWebStatus)({ ok: true, checkedAt: now } as ServiceStatus)
 
     // Check API
     try {
-      const res = await fetch(`${apiBase}/health`)
+      const res = await fetch(`${apiBase}/health`, { signal })
+      if (signal.aborted) return
+      
       const data = await res.json()
-      setApiStatus({ ok: data.ok, checkedAt: now })
+      safeSetState(setApiStatus)({ ok: data.ok, checkedAt: now } as ServiceStatus)
 
       // Check DB (via API health response)
       if (data.database === 'connected') {
-        setDbStatus({ ok: true, checkedAt: now })
+        safeSetState(setDbStatus)({ ok: true, checkedAt: now } as ServiceStatus)
       } else {
-        setDbStatus({ error: 'Database disconnected', checkedAt: now })
+        safeSetState(setDbStatus)({ error: 'Database disconnected', checkedAt: now } as ServiceStatus)
       }
     } catch (err: unknown) {
-      setApiStatus({ error: err instanceof Error ? err.message : 'Unknown error', checkedAt: now })
-      setDbStatus({ error: 'Database check unavailable', checkedAt: now })
+      if (signal.aborted) return
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        return // Request was aborted, don't update state
+      }
+      
+      safeSetState(setApiStatus)({ 
+        error: err instanceof Error ? err.message : 'Unknown error', 
+        checkedAt: now 
+      } as ServiceStatus)
+      safeSetState(setDbStatus)({ error: 'Database check unavailable', checkedAt: now } as ServiceStatus)
     }
 
     // Check OCR
     try {
-      const res = await fetch('/ocr/health')
+      const res = await fetch('/ocr/health', { signal })
+      if (signal.aborted) return
+      
       const data = await res.json()
-      setOcrStatus({ ok: data.ok, checkedAt: now })
+      safeSetState(setOcrStatus)({ ok: data.ok, checkedAt: now } as ServiceStatus)
     } catch (err: unknown) {
-      setOcrStatus({ error: err instanceof Error ? err.message : 'Unknown error', checkedAt: now })
+      if (signal.aborted) return
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        return // Request was aborted, don't update state
+      }
+      
+      safeSetState(setOcrStatus)({ 
+        error: err instanceof Error ? err.message : 'Unknown error', 
+        checkedAt: now 
+      } as ServiceStatus)
     }
   }, [apiBase])
 
   useEffect(() => {
     checkHealth()
+
+    // Cleanup: abort all pending requests on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [checkHealth])
 
   const ServiceCard = ({ 

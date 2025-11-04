@@ -69,14 +69,23 @@ router.post('/extract', upload.single('file'), asyncHandler(async (req, res) => 
 
     if (!ocrResponse.ok) {
       const errorText = await ocrResponse.text()
+      const upstreamStatus = ocrResponse.status
+      
+      // Log upstream error for diagnostics
+      console.error(`[OCR Service Error] Upstream returned ${upstreamStatus}: ${errorText}`)
+      
       await documentService.updateStatus(document.id, DOCUMENT_STATUSES.FAILED, {
-        error: `OCR service error: ${ocrResponse.status}`,
+        error: `OCR service error: ${upstreamStatus}`,
         details: errorText,
+        upstreamStatus,
       })
+      
+      // Always return 502 Bad Gateway for upstream OCR failures
+      // Do not propagate arbitrary upstream status codes to clients
       throw new AppError(
         'OCR processing failed',
-        ocrResponse.status,
-        `OCR service returned ${ocrResponse.status}: ${errorText}`,
+        502, // Bad Gateway - upstream service error
+        `OCR service returned ${upstreamStatus}. Please try again later.`,
         'OCR_ERROR'
       )
     }
