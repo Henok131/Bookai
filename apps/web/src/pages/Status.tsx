@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 
 const apiBase = import.meta.env.VITE_API_BASE || '/api'
@@ -15,7 +15,7 @@ export default function Status() {
   const [ocrStatus, setOcrStatus] = useState<ServiceStatus>({})
   const [dbStatus, setDbStatus] = useState<ServiceStatus>({})
 
-  const checkHealth = async () => {
+  const checkHealth = useCallback(async () => {
     const now = new Date().toLocaleString()
 
     // Check Web (always running if page loads)
@@ -26,8 +26,16 @@ export default function Status() {
       const res = await fetch(`${apiBase}/health`)
       const data = await res.json()
       setApiStatus({ ok: data.ok, checkedAt: now })
+
+      // Check DB (via API health response)
+      if (data.database === 'connected') {
+        setDbStatus({ ok: true, checkedAt: now })
+      } else {
+        setDbStatus({ error: 'Database disconnected', checkedAt: now })
+      }
     } catch (err: unknown) {
       setApiStatus({ error: err instanceof Error ? err.message : 'Unknown error', checkedAt: now })
+      setDbStatus({ error: 'Database check unavailable', checkedAt: now })
     }
 
     // Check OCR
@@ -38,18 +46,11 @@ export default function Status() {
     } catch (err: unknown) {
       setOcrStatus({ error: err instanceof Error ? err.message : 'Unknown error', checkedAt: now })
     }
-
-    // Check DB (via API health if it includes DB info, otherwise assume healthy if API is healthy)
-    if (apiStatus.ok) {
-      setDbStatus({ ok: true, checkedAt: now })
-    } else {
-      setDbStatus({ error: 'Database check unavailable', checkedAt: now })
-    }
-  }
+  }, [apiBase])
 
   useEffect(() => {
     checkHealth()
-  }, [])
+  }, [checkHealth])
 
   const ServiceCard = ({ 
     name, 
