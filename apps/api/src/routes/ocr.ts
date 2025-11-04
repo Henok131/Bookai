@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { z } from 'zod'
-import { documentService } from '../services/documentService'
-import { asyncHandler, AppError } from '../middleware/errorHandler'
-import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE, DEFAULT_OCR_SERVICE_URL, DOCUMENT_STATUSES } from '../config/constants'
+import { documentService } from '../services/documentService.js'
+import { asyncHandler, AppError } from '../middleware/errorHandler.js'
+import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE, DEFAULT_OCR_SERVICE_URL, DOCUMENT_STATUSES } from '../config/constants.js'
 
 const router = Router()
 

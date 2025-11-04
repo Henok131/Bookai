@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import multer from 'multer'
-import { AppError } from './errorHandler'
+import { AppError } from './errorHandler.js'
 
 export function handleUploadError(
   err: Error,

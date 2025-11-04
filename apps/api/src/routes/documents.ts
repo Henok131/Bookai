@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { documentService } from '../services/documentService'
-import { asyncHandler } from '../middleware/errorHandler'
-import { AppError } from '../middleware/errorHandler'
+import { documentService } from '../services/documentService.js'
+import { asyncHandler } from '../middleware/errorHandler.js'
+import { AppError } from '../middleware/errorHandler.js'
 
 const router = Router()
 

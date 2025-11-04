@@ -1,12 +1,12 @@
 import express from 'express'
 import cors from 'cors'
-import { errorHandler } from './middleware/errorHandler'
-import { notFoundHandler } from './middleware/notFound'
-import { handleUploadError } from './middleware/uploadError'
-import { validateEnvironment } from './middleware/validateEnv'
-import healthRouter from './routes/health'
-import documentsRouter from './routes/documents'
-import ocrRouter from './routes/ocr'
+import { errorHandler } from './middleware/errorHandler.js'
+import { notFoundHandler } from './middleware/notFound.js'
+import { handleUploadError } from './middleware/uploadError.js'
+import { validateEnvironment } from './middleware/validateEnv.js'
+import healthRouter from './routes/health.js'
+import documentsRouter from './routes/documents.js'
+import ocrRouter from './routes/ocr.js'
 
 const app = express()
 
