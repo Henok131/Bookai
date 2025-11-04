@@ -4,7 +4,7 @@ services:
     container_name: bookai_db
     environment:
       POSTGRES_USER: bookai
-      POSTGRES_PASSWORD: "Asenay2025H$+"
+      POSTGRES_PASSWORD: "Asenay2025H?Q"
       POSTGRES_DB: bookai
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -28,7 +28,7 @@ services:
       NODE_ENV: production
       DOMAIN: bookai.asenaytech.com
       POSTGRES_PASSWORD: "Asenay2025H$+"
-      DATABASE_URL: "postgresql://bookai:Asenay2025H$+@db:5432/bookai"
+      DATABASE_URL: "postgresql://bookai:Asenay2025H?Q@db:5432/bookai"
       CORS_ORIGIN: "*"
       OCR_SERVICE_URL: "http://ocr:8000"
     ports:
